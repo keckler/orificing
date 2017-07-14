@@ -1,10 +1,12 @@
+clear all;
+
 A_flow = 175.84E-4; %flow area per assembly, m^2
 assemblyPowerThreshold = 0.01E6; %minimum power in an assembly to be considered in the optimization, W
 cp = 1272; %average heat capacity of coolant, J/kg/K
-powerDetectorFiles = {'~/Downloads/BnB_det0_33'}; %paths of Serpent detector files with lattice power detectors
+powerDetectorFiles = {'~/Downloads/BnB_det0_31','~/Downloads/BnB_det0_32','~/Downloads/BnB_det0_33'}; %paths of Serpent detector files with lattice power detectors
 dP_max = 1E6; %maximum allowable pressure drop over core, Pa, limit taken from Qvist et al
 dT_max = 300; %maximum temp increase allowable, C
-adjacent_max_diff = 0.5; %percentage difference in dT between adjacent assemblies
+adjacent_max_diff = 0.99; %percentage difference in dT between adjacent assemblies
 f_novendstern = 0.021132; %friction factor in the Novendstern friction loss model, see p282 of Waltar
 H = 3.18; %height of rods, m
 nbins = [20]; %vector of number of orifice zones
@@ -15,7 +17,6 @@ T_out_bar = 510; %perfectly mixed coolant outlet plenum temperature, C
 T_out_bar_tol = 5; %tolerance on perfectly mixed coolant outlet temperature, C
 v_max = 12.0; %maximum coolant velocity allowed in assembly, m/s, limit taken from Qvist et al
 
-%average the assembly powers over the cycle
 Q = [];
 for file = powerDetectorFiles
     %read in detector results
@@ -32,26 +33,20 @@ for file = powerDetectorFiles
     Q_step = fissionFrac*Q_step; %scale total power by the fraction of power from fission, since this is the tally
     Q_step = Q_step + Q_gamma_step; %add in the gamma power
     
-    %initialize Q if not yet done
-    if length(Q) == 0
-        Q = zeros(length(Q_step),1);
-    end
-    
     %add assembly powers in current depletion step to running total
-    Q = Q + Q_step;
+    Q(:,end+1) = Q_step;
 end
-Q = Q/length(powerDetectorFiles); %divide by number of steps to get average assembly power over cycle
 
-ncols = sqrt(length(Q)); %size of the square matrix formed by the Q vector before entries are removed
+ncols = sqrt(length(Q)); %size of the square matrix to be formed by the Q vector before entries are removed
 
 %remove zero entries and form map
 map = []; %i'th entry corresponds to index of reduced Q vector
 Q_new = [];
 i = 1;
 j = 1;
-while i < length(Q)
-    if Q(i) > assemblyPowerThreshold
-        Q_new(end+1,1) = Q(i);
+while i < length(Q(:,1))
+    if Q(i,1) > assemblyPowerThreshold
+        Q_new(end+1,:) = Q(i,1:end);
         map(i) = j;
         j = j + 1;
     else
@@ -61,21 +56,27 @@ while i < length(Q)
 end
 Q = Q_new;
 
-%define constants as vectors
-T_in = T_in*ones(length(Q),1); %inlet temperature, C
-T_out_bar = T_out_bar*ones(length(Q),1); %temperature of outlet plenum, perfectly mixed, C
+Q_ave = sum(Q,2)/length(powerDetectorFiles); %divide by number of steps to get average assembly power over cycle
+
 alpha = Q/cp; %kg-K/s
 
-%optimize
+%optimize for each number of orifice zones
 j = 1;
 while j < length(nbins)+1
-    zones = discretize(Q,logspace(log10(min(Q)),log10(max(Q)),nbins(j))); %bin it up
+    zones = discretize(Q_ave,logspace(log10(min(min(Q))),log10(max(max(Q))),nbins(j))); %bin it up
     
     cvx_precision best
     cvx_begin
-        variables m(length(Q)) x(nbins(j)) %inverse flowrate, dummies
-    
-        minimize( var(m./alpha) )
+        variables m(size(Q)) x(nbins(j)) %inverse flowrate, dummies
+        
+        i = 1;
+        obj = 0;
+        while i < length(Q(1,:))+1
+            obj = obj + var(m(:,i)./alpha(:,i));
+            i = i + 1;
+        end
+        
+        minimize( obj )
         
         %constraints
         sum(m) >= sum(alpha)./(T_out_bar+T_out_bar_tol-T_in) %weighted outlet temp is less than or equal to T_out_bar plus a tolerance
@@ -84,6 +85,13 @@ while j < length(nbins)+1
         m./alpha >= 1/dT_max %maximum temperature change over channel
         m/rho/A_flow <= v_max %maximum flow velocity in assembly
         (1.29+2.01+0.363+0.41+0.098+0.79+1.32)*m.^2/2/rho/A_flow^2 + (1.0+1.0+0.022+0.0024+0.000082+0.00035+f_novendstern*H/(4*A_flow/P_w))*m.^2/2/rho/A_flow^2 + rho*9.81*H <= dP_max %maximum pressure drop in assembly, form+friction+gravity, using generic values for form and friction losses from p281 of Waltar
+        
+        %flow in each assembly remains constant over all steps
+        i = 2;
+        while i < length(Q(1,:))+1
+            m(:,1) == m(:,i)
+            i = i + 1;
+        end
         
         %constraints to remain in bins
         k = 1;
@@ -181,7 +189,7 @@ while j < length(nbins)+1
 
     %calculate final parameters
     T_out = Q./m/cp + T_in;
-    T_out_mixed = sum(T_out.*m)/sum(m);
+    T_out_mixed = sum(T_out.*m)./sum(m);
     dP = (1.29+2.01+0.363+0.41+0.098+0.79+1.32)*m.^2/2/rho/A_flow^2 + (1.0+1.0+0.022+0.0024+0.000082+0.00035+f_novendstern*H/(4*A_flow/P_w))*m.^2/2/rho/A_flow^2 + rho*9.81*H; %pressure drop without orifices
     v = m/rho/A_flow;
     
