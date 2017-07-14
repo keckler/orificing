@@ -6,7 +6,7 @@ cp = 1272; %average heat capacity of coolant, J/kg/K
 powerDetectorFiles = {'~/Downloads/BnB_det0_31','~/Downloads/BnB_det0_32','~/Downloads/BnB_det0_33'}; %paths of Serpent detector files with lattice power detectors
 dP_max = 1E6; %maximum allowable pressure drop over core, Pa, limit taken from Qvist et al
 dT_max = 300; %maximum temp increase allowable, C
-adjacent_max_diff = 0.99; %percentage difference in dT between adjacent assemblies
+adjacent_max_diff = 0.4; %percentage difference in dT between adjacent assemblies
 f_novendstern = 0.021132; %friction factor in the Novendstern friction loss model, see p282 of Waltar
 H = 3.18; %height of rods, m
 nbins = [20]; %vector of number of orifice zones
@@ -86,7 +86,7 @@ while j < length(nbins)+1
         m/rho/A_flow <= v_max %maximum flow velocity in assembly
         (1.29+2.01+0.363+0.41+0.098+0.79+1.32)*m.^2/2/rho/A_flow^2 + (1.0+1.0+0.022+0.0024+0.000082+0.00035+f_novendstern*H/(4*A_flow/P_w))*m.^2/2/rho/A_flow^2 + rho*9.81*H <= dP_max %maximum pressure drop in assembly, form+friction+gravity, using generic values for form and friction losses from p281 of Waltar
         
-        %flow in each assembly remains constant over all steps
+        %constraints so flow in each assembly remains constant over all steps
         i = 2;
         while i < length(Q(1,:))+1
             m(:,1) == m(:,i)
@@ -100,7 +100,7 @@ while j < length(nbins)+1
             l = 1;
             while l < length(zones)+1
                 if zp(l) == 0
-                    m(l) == x(k)
+                    m(l,1) == x(k)
                 end
                 l = l + 1;
             end
@@ -142,43 +142,43 @@ while j < length(nbins)+1
             sw = map(sw);
             se = map(se);
             
-            %constrain
+                        %constrain
             if isnan(center) %if current assembly is not in reduced matrix, don't do anything
             else
                 if isnan(nw) %if northwest assembly is not in reduced matrix, don't do anything
                 else
-                    m(center)/alpha(center) >= 1/(1+adjacent_max_diff)*m(nw)/alpha(nw)
-                    m(center)/alpha(center) <= 1/(1-adjacent_max_diff)*m(nw)/alpha(nw)
+                    m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(nw,:)./alpha(nw,:)
+                    m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(nw,:)./alpha(nw,:)
                 end
                 
                 if isnan(ne) %if northeast assembly is not in reduced matrix, don't do anything
                 else
-                    m(center)/alpha(center) >= 1/(1+adjacent_max_diff)*m(ne)/alpha(ne)
-                    m(center)/alpha(center) <= 1/(1-adjacent_max_diff)*m(ne)/alpha(ne)
+                    m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(ne,:)./alpha(ne,:)
+                    m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(ne,:)./alpha(ne,:)
                 end
                 
                 if isnan(w) %if west assembly is not in reduced matrix, don't do anything
                 else
-                    m(center)/alpha(center) >= 1/(1+adjacent_max_diff)*m(w)/alpha(w)
-                    m(center)/alpha(center) <= 1/(1-adjacent_max_diff)*m(w)/alpha(w)
+                    m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(w,:)./alpha(w,:)
+                    m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(w,:)./alpha(w,:)
                 end
                 
                 if isnan(e) %if east assembly is not in reduced matrix, don't do anything
                 else
-                    m(center)/alpha(center) >= 1/(1+adjacent_max_diff)*m(e)/alpha(e)
-                    m(center)/alpha(center) <= 1/(1-adjacent_max_diff)*m(e)/alpha(e)
+                    m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(e,:)./alpha(e,:)
+                    m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(e,:)./alpha(e,:)
                 end
                 
                 if isnan(sw) %if southwest assembly is not in reduced matrix, don't do anything
                 else
-                    m(center)/alpha(center) >= 1/(1+adjacent_max_diff)*m(sw)/alpha(sw)
-                    m(center)/alpha(center) <= 1/(1-adjacent_max_diff)*m(sw)/alpha(sw)
+                    m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(sw,:)./alpha(sw,:)
+                    m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(sw,:)./alpha(sw,:)
                 end
                 
                 if isnan(se) %if southeast assembly is not in reduced matrix, don't do anything
                 else
-                    m(center)/alpha(center) >= 1/(1+adjacent_max_diff)*m(se)/alpha(se)
-                    m(center)/alpha(center) <= 1/(1-adjacent_max_diff)*m(se)/alpha(se)
+                    m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(se,:)./alpha(se,:)
+                    m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(se,:)./alpha(se,:)
                 end
             end
             
