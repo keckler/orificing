@@ -250,22 +250,26 @@ while j < length(nbins)+1
     xlabel('assembly'); yyaxis left; ylabel('T_{out} (C), flow (kg/s)'), yyaxis right; ylabel('power (W)');
     drawnow;
     
-    %create hexmap of outlet temps
-    i = 1;
-    while i < length(map)+1
-        r = floor(i/ncols)+1; %row of current assembly in matrix
-        c = mod(i,ncols); %column of current assembly in matrix
-        if c == 0 %adjust for special case of last column in each row
-            r = r-1; c = ncols;
+    %create hexmap of outlet temps for each power profile
+    k = 1;
+    while k < length(powerDetectorFiles)+1
+        i = 1;
+        while i < length(map)+1
+            r = floor(i/ncols)+1; %row of current assembly in matrix
+            c = mod(i,ncols); %column of current assembly in matrix
+            if c == 0 %adjust for special case of last column in each row
+                r = r-1; c = ncols;
+            end
+
+            if isnan(map(i))
+                T_out_hexmap(r,c,k) = 0;
+            else
+                T_out_hexmap(r,c,k) = T_out(map(i));
+            end
+
+            i = i + 1;
         end
-        
-        if isnan(map(i))
-            T_out_hexmap(r,c) = 0;
-        else
-            T_out_hexmap(r,c) = T_out(map(i));
-        end
-        
-        i = i + 1;
+        k = k + 1;
     end
     
     j = j + 1;
