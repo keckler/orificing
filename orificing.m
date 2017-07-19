@@ -246,7 +246,7 @@ while j < length(nbins)+1
     bar(m); hold on; 
     plot(T_out); ylim([0,1000]); 
     yyaxis right; plot(Q); 
-    legend('flow','T_{out}','power'); title(sprintf('k = %i',nbins(j))); grid on; 
+    title(sprintf('k = %i',nbins(j))); grid on; 
     xlabel('assembly'); yyaxis left; ylabel('T_{out} (C), flow (kg/s)'), yyaxis right; ylabel('power (W)');
     drawnow;
     
