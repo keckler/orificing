@@ -1,11 +1,6 @@
 function [] = printPFs(ngroups, linearpfs, logpfs, kmeanspfs, kmedspfs)
 
 figure;
-
-linear = [162.1740 160.8487 138.9036 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 61.4446 58.6000 57.9891 42.9693];
-log = [2.2652 2.0659 1.8012 1.8012 1.6700 1.6700 1.6289 1.5838 1.5097 1.4821 1.4726 1.4366 1.4147 1.3731 1.3533 1.3533 1.3403 1.3244 1.3105 1.2995 1.2865];
-kmean = [5.4197 21.1905 41.4911 9.2923 17.4445 61.4446 66.5339 61.4446 18.2360 3.2504 20.3913 22.6868 13.7957 3.1447 27.5476 12.8229 15.1840 36.8832 14.4150 12.8229 18.3752];
-kmed = [70.4311 61.4446 21.2543 22.6868 21.2543 22.6868 19.4662 27.5476 22.6868 28.4040 5.5885 17.5182 36.9571 14.7065 19.4347 17.1931 12.8229 10.0514 4.1945 4.0539 7.2947];
-
-semilogy(ngroups, linear, ngroups, log, ngroups, kmean, ngroups, kmed); grid on; xlabel('number of orifice groups'); ylabel('maximum/minimum power ratio within an orifice group');
+semilogy(ngroups, linear, ngroups, log, ngroups, kmean, ngroups, kmed); 
+grid on; xlabel('number of orifice groups'); ylabel('largest maximum/minimum power ratio within an orifice group');
 legend('linear spacing', 'log spacing', 'kmeans grouping', 'kmedoids grouping');
