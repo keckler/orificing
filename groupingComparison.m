@@ -1,94 +1,49 @@
-figure;
+clear variables;
 
-Q_sorted = sort(Q);
+assemblyPowerThreshold = 0.01E6;
+ngroups = [10:19];
+nmethods = 4;
+powerDetectorFiles = {'~/Downloads/BnB_det0','~/Downloads/BnB_det1','~/Downloads/BnB_det2','~/Downloads/BnB_det3'};
 
+Q = readQ(powerDetectorFiles);
+[Q, ~] = formMap(Q, assemblyPowerThreshold);
+Q_ave = sum(Q,2)/length(powerDetectorFiles);
+Q_ave_sorted = sort(Q_ave);
 
-zones = discretize(Q,linspace(min(min(Q)),max(max(Q)),20));
-zones_sorted = sort(zones);
-subplot(1,5,1); 
-i = 1;
-while i < 20+1
-    j = 1;
-    while j < length(Q)+1
-        if zones_sorted(j) == i
-            h(j) = bar(j,Q_sorted(j));
-            set(h(j),'FaceColor',[i/20 1-(i/20) i/20], 'EdgeColor',[i/20 1-(i/20) i/20]);
-            hold on;
-        end
-        j = j + 1;
-    end
-    i = i + 1;
-end
-grid on; xlabel('assembly'); ylabel('assembly power (W)'); title('linearly spaced'); set(gca, 'XTickMode','Auto'); set(gca,'YScale','log');
+linearpfs = [];
+logpfs = [];
+kmeanspfs = [];
+kmedspfs = [];
 
-zones = discretize(Q,logspace(log10(min(min(Q))),log10(max(max(Q))),20));
-zones_sorted = sort(zones);
-subplot(1,5,2); 
-i = 1;
-while i < 20+1
-    j = 1;
-    while j < length(Q)+1
-        if zones_sorted(j) == i
-            h(j) = bar(j,Q_sorted(j));
-            set(h(j),'FaceColor',[i/20 1-(i/20) i/20], 'EdgeColor',[i/20 1-(i/20) i/20]);
-            hold on;
-        end
-        j = j + 1;
-    end
-    i = i + 1;
-end
-grid on; xlabel('assembly'); ylabel('assembly power (W)'); title('logarithmically spaced'); set(gca, 'XTickMode','Auto'); set(gca,'YScale','log');
+for ng = ngroups
+    figure;
     
-zones = kmeans(Q,20);
-zones_sorted = sort(zones);
-subplot(1,5,3); 
-i = 1;
-while i < 20+1
-    j = 1;
-    while j < length(Q)+1
-        if zones_sorted(j) == i
-            h(j) = bar(j,Q_sorted(j));
-            set(h(j),'FaceColor',[i/20 1-(i/20) i/20], 'EdgeColor',[i/20 1-(i/20) i/20]);
-            hold on;
-        end
-        j = j + 1;
-    end
-    i = i + 1;
+    linearZones = linearGrouping(Q_ave, Q_ave_sorted, ng, nmethods);
+    [linearpf, linearpfgroup] = evaluateGroups(linearZones, Q_ave);
+    
+    logZones = logGrouping(Q_ave, Q_ave_sorted, ng, nmethods);
+    [logpf, logpfgroup] = evaluateGroups(logZones, Q_ave);
+    
+    kmeansZones = kmeansGrouping(Q_ave, Q_ave_sorted, ng, nmethods);
+    [kmeanspf, kmeanspfgroup] = evaluateGroups(kmeansZones, Q_ave);
+    
+    kmedZones = kmedoidsGrouping(Q_ave, Q_ave_sorted, ng, nmethods);
+    [kmedpf, kmedpfgroup] = evaluateGroups(kmedZones, Q_ave);
+    
+    linearpfs = [linearpfs, linearpf];
+    logpfs = [logpfs, logpf];
+    kmeanspfs = [kmeanspfs, kmeanspf];
+    kmedpfs = [kmedpfs, kmedpf];
+    
+    drawnow;
+    
+    disp('----------------------------------------------------')
+    disp([ng])
+    disp('group peaking factors: linear, log, kmeans, kmedoids')
+    disp([linearpf, logpf, kmeanspf, kmedpf])
+    disp('peaking factor group: linear, log, kmeans, kmedoids')
+    disp([linearpfgroup, logpfgroup, kmeanspfgroup, kmedpfgroup])
+    disp('----------------------------------------------------')
 end
-grid on; xlabel('assembly'); ylabel('assembly power (W)'); title('k-means clustered'); set(gca, 'XTickMode','Auto'); set(gca,'YScale','log');
 
-zones = kmedoids(Q,20);
-zones_sorted = sort(zones);
-subplot(1,5,4); 
-i = 1;
-while i < 20+1
-    j = 1;
-    while j < length(Q)+1
-        if zones_sorted(j) == i
-            h(j) = bar(j,Q_sorted(j));
-            set(h(j),'FaceColor',[i/20 1-(i/20) i/20], 'EdgeColor',[i/20 1-(i/20) i/20]);
-            hold on;
-        end
-        j = j + 1;
-    end
-    i = i + 1;
-end
-grid on; xlabel('assembly'); ylabel('assembly power (W)'); title('k-medoids clustered'); set(gca, 'XTickMode','Auto'); set(gca,'YScale','log');
-
-zones = clusterdata(Q,'maxclust',20);
-zones_sorted = sort(zones);
-subplot(1,5,5); 
-i = 1;
-while i < 20+1
-    j = 1;
-    while j < length(Q)+1
-        if zones_sorted(j) == i
-            h(j) = bar(j,Q_sorted(j));
-            set(h(j),'FaceColor',[i/20 1-(i/20) i/20], 'EdgeColor',[i/20 1-(i/20) i/20]);
-            hold on;
-        end
-        j = j + 1;
-    end
-    i = i + 1;
-end
-grid on; xlabel('assembly'); ylabel('assembly power (W)'); title('euclidian distance clustered'); set(gca, 'XTickMode','Auto'); set(gca,'YScale','log');
+printPFs(ngroups, linearpfs, logpfs, kmeanspfs, kmedspfs)
