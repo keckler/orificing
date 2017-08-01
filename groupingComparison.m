@@ -1,7 +1,7 @@
 clear variables;
 
 assemblyPowerThreshold = 0.01E6;
-ngroups = [10:19];
+ngroups = [10:40];
 nmethods = 4;
 powerDetectorFiles = {'~/Downloads/BnB_det0','~/Downloads/BnB_det1','~/Downloads/BnB_det2','~/Downloads/BnB_det3'};
 
@@ -13,7 +13,7 @@ Q_ave_sorted = sort(Q_ave);
 linearpfs = [];
 logpfs = [];
 kmeanspfs = [];
-kmedspfs = [];
+kmedpfs = [];
 
 for ng = ngroups
     figure;
@@ -46,4 +46,4 @@ for ng = ngroups
     disp('----------------------------------------------------')
 end
 
-printPFs(ngroups, linearpfs, logpfs, kmeanspfs, kmedspfs)
+plotPFs(ngroups, linearpfs, logpfs, kmeanspfs, kmedpfs)
