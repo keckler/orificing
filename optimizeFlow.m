@@ -51,33 +51,13 @@ cvx_begin
             r = r-1; c = ncols;
         end
 
-        %get row and column of each adjacent assembly
-        nwr = r-1; nwc = c; %northwest row, column
-        ner = r-1; nec = c+1; %northeast row, column
-        wr = r; wc = c-1; %west row, column
-        er = r; ec = c+1; %east row, column
-        swr = r+1; swc = c-1; %southwest row, column
-        ser = r+1; sec = c; %southeast row, column
+        [nwr, nwc, ner, nec, wr, wc, er, ec, swr, swc, ser, sec] = getColumnRow(r, c);
 
-        %get assembly number of each adjacent assembly in original matrix
-        center = (r-1)*ncols+c;
-        nw = (nwr-1)*ncols+nwc;
-        ne = (ner-1)*ncols+nec;
-        w = (wr-1)*ncols+wc;
-        e = (er-1)*ncols+ec;
-        sw = (swr-1)*ncols+swc;
-        se = (ser-1)*ncols+sec;
+        [center, nw, ne, w, e, sw, se] = getAdjacentNumber(r, c, ncols, nwr, ner, wr, er, swr, ser, nwc, nec, wc, ec, swc, sec);
 
-        %convert assembly number to reduced matrix
-        center = map(center);
-        nw = map(nw);
-        ne = map(ne);
-        w = map(w);
-        e = map(e);
-        sw = map(sw);
-        se = map(se);
+        [center, nw, ne, w, e, sw, se] = convertToReducedMatrix(map, center, nw, ne, w, e, sw, se);
 
-                    %constrain
+        %constrain
         if isnan(center) %if current assembly is not in reduced matrix, don't do anything
         else
             if isnan(nw) %if northwest assembly is not in reduced matrix, don't do anything
