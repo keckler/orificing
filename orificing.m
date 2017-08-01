@@ -1,60 +1,28 @@
-clear all;
+clear variables;
 
 A_flow = 175.84E-4; %flow area per assembly, m^2
+adjacent_max_diff = 0.4; %percentage difference in dT between adjacent assemblies
 assemblyPowerThreshold = 0.01E6; %minimum power in an assembly to be considered in the optimization, W
 cp = 1272; %average heat capacity of coolant, J/kg/K
-powerDetectorFiles = {'~/Downloads/BnB_det0_31','~/Downloads/BnB_det0_32','~/Downloads/BnB_det0_33'}; %paths of Serpent detector files with lattice power detectors
 dP_max = 1E6; %maximum allowable pressure drop over core, Pa, limit taken from Qvist et al
-dT_max = 300; %maximum temp increase allowable, C
-adjacent_max_diff = 0.4; %percentage difference in dT between adjacent assemblies
+dT_max = 200; %maximum temp increase allowable, C
 f_novendstern = 0.021132; %friction factor in the Novendstern friction loss model, see p282 of Waltar
+groupingMethod = 'log'; %choose from 'lin', 'log', 'kmeans', 'kmedoids'
 H = 3.18; %height of rods, m
-nbins = [20]; %vector of number of orifice zones
+nbins = [28]; %vector of number of orifice zones
 P_w = 7.2062; %wetted perimeter per assembly, m
+powerDetectorFiles = {'~/Downloads/BnB_det0','~/Downloads/BnB_det1','~/Downloads/BnB_det2','~/Downloads/BnB_det3'}; %paths of Serpent detector files with lattice power detectors
 rho = 850; %coolant density at lowest point, kg/m^3
 T_in = 355; %coolant inlet temperature, C
 T_out_bar = 510; %perfectly mixed coolant outlet plenum temperature, C
 T_out_bar_tol = 5; %tolerance on perfectly mixed coolant outlet temperature, C
 v_max = 12.0; %maximum coolant velocity allowed in assembly, m/s, limit taken from Qvist et al
 
-Q = [];
-for file = powerDetectorFiles
-    %read in detector results
-    run(file{1})
-
-    %axially integrate assembly powers
-    Q_step = DETAssemblyPowerAxial1(:,11)+DETAssemblyPowerAxial2(:,11)+DETAssemblyPowerAxial3(:,11)+DETAssemblyPowerAxial4(:,11)+DETAssemblyPowerAxial5(:,11)+DETAssemblyPowerAxial6(:,11)+DETAssemblyPowerAxial7(:,11)+DETAssemblyPowerAxial8(:,11)+DETAssemblyPowerAxial9(:,11); %fission power in each assembly, W
-    Q_gamma_step = DETAssemblyGammaPowerAxial1(:,11)+DETAssemblyGammaPowerAxial2(:,11)+DETAssemblyGammaPowerAxial3(:,11)+DETAssemblyGammaPowerAxial4(:,11)+DETAssemblyGammaPowerAxial5(:,11)+DETAssemblyGammaPowerAxial6(:,11)+DETAssemblyGammaPowerAxial7(:,11)+DETAssemblyGammaPowerAxial8(:,11)+DETAssemblyGammaPowerAxial9(:,11); %gamma power in each assembly, W
-    
-    %add gamma power into total power
-    totalPower = sum(Q_step);
-    totalGammaPower = sum(Q_gamma_step);
-    fissionFrac = totalPower/(totalPower+totalGammaPower);
-    Q_step = fissionFrac*Q_step; %scale total power by the fraction of power from fission, since this is the tally
-    Q_step = Q_step + Q_gamma_step; %add in the gamma power
-    
-    %add assembly powers in current depletion step to running total
-    Q(:,end+1) = Q_step;
-end
+Q = readQ(powerDetectorFiles);
 
 ncols = sqrt(length(Q)); %size of the square matrix to be formed by the Q vector before entries are removed
 
-%remove zero entries and form map
-map = []; %i'th entry corresponds to index of reduced Q vector
-Q_new = [];
-i = 1;
-j = 1;
-while i < length(Q(:,1))
-    if Q(i,1) > assemblyPowerThreshold
-        Q_new(end+1,:) = Q(i,1:end);
-        map(i) = j;
-        j = j + 1;
-    else
-        map(i) = NaN;
-    end
-    i = i + 1;
-end
-Q = Q_new;
+[Q, map] = formMap(Q, assemblyPowerThreshold);
 
 Q_ave = sum(Q,2)/length(powerDetectorFiles); %divide by number of steps to get average assembly power over cycle
 
@@ -63,7 +31,8 @@ alpha = Q/cp; %kg-K/s
 %optimize for each number of orifice zones
 j = 1;
 while j < length(nbins)+1
-    zones = discretize(Q_ave,logspace(log10(min(min(Q))),log10(max(max(Q))),nbins(j))); %bin it up
+    nb = nbins(j);
+    zones = binning(Q_ave, Q, nb, groupingMethod);
     
     cvx_precision best
     cvx_begin
@@ -194,16 +163,14 @@ while j < length(nbins)+1
     v = m/rho/A_flow;
     
     %check if bounds are tight
-    tol = 0.001; %tolerance for checking
-    i = 1;
-    while i < length(powerDetectorFiles) + 1 %cycle through all power profiles
-        display('------------------')
-        display('step')
-        disp(i)
-
-        if isnan(T_out(1,1)) == 1
+    if isnan(T_out(1,1)) == 1
             display('problem infeasible')
-        else
+    else
+        tol = 0.001; %tolerance for checking
+        i = 1;
+        while i < length(powerDetectorFiles) + 1 %cycle through all power profiles
+            display('------------------')
+            disp([i])
             if sum(T_out(:,i) >= (T_in+dT_max)-tol*(T_in+dT_max))
                 display('max temp increase constraint is tight!')
             else
@@ -235,10 +202,12 @@ while j < length(nbins)+1
             else
                 display('min flowrate constraint is loose')
             end
+            
+            display('------------------')
+            i = i + 1;
+            
         end
 
-        display('------------------')
-        i = i + 1;
     end
     
     %plot T_out, power, flowrate
@@ -264,7 +233,7 @@ while j < length(nbins)+1
             if isnan(map(i))
                 T_out_hexmap(r,c,k) = 0;
             else
-                T_out_hexmap(r,c,k) = T_out(map(i));
+                T_out_hexmap(r,c,k) = T_out(map(i),k);
             end
 
             i = i + 1;
