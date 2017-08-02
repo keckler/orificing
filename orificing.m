@@ -121,5 +121,23 @@ while j < length(nbins)+1
         k = k + 1;
     end
     
+    %create hexmap of flowrates
+    i = 1;
+    while i < length(map)+1
+        r = floor(i/ncols)+1; %row of current assembly in matrix
+        c = mod(i,ncols); %column of current assembly in matrix
+        if c == 0 %adjust for special case of last column in each row
+            r = r-1; c = ncols;
+        end
+        
+        if isnan(map(i))
+            m_hexmap(r,c) = 0;
+        else
+            m_hexmap(r,c) = m(map(i));
+        end
+        
+        i = i + 1;
+    end
+    
     j = j + 1;
 end
