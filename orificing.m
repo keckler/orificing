@@ -1,6 +1,6 @@
 clear variables;
 
-A_flow = 175.84E-4; %flow area per assembly, m^2
+A_flow = 123.3184E-4; %flow area per assembly, m^2
 adjacent_max_diff = 0.4; %percentage difference in dT between adjacent assemblies
 assemblyPowerThreshold = 0.01E6; %minimum power in an assembly to be considered in the optimization, W
 cp = 1272; %average heat capacity of coolant, J/kg/K
@@ -11,7 +11,7 @@ groupingMethod = 'log'; %choose from 'lin', 'log', 'kmeans', 'kmedoids'
 H = 3.18; %height of rods, m
 nbins = [28]; %vector of number of orifice zones
 P_w = 7.2062; %wetted perimeter per assembly, m
-powerDetectorFiles = {'~/Downloads/BnB_det0'};%,'~/Downloads/BnB_det1','~/Downloads/BnB_det2','~/Downloads/BnB_det3'}; %paths of Serpent detector files with lattice power detectors
+powerDetectorFiles = {'~/Documents/work/ARC/serpent/BnB/BnB_det0','~/Documents/work/ARC/serpent/BnB/BnB_det1','~/Documents/work/ARC/serpent/BnB/BnB_det2','~/Documents/work/ARC/serpent/BnB/BnB_det3'}; %paths of Serpent detector files with lattice power detectors
 rho = 850; %coolant density at lowest point, kg/m^3
 T_in = 355; %coolant inlet temperature, C
 T_out_bar = 510; %perfectly mixed coolant outlet plenum temperature, C
@@ -42,27 +42,7 @@ while j < length(nbins)+1
     
     plotResults(m, T_out, Q, nbins, j);
     
-    %create hexmap of outlet temps for each power profile
-    k = 1;
-    while k < length(powerDetectorFiles)+1
-        i = 1;
-        while i < length(map)+1
-            r = floor(i/ncols)+1; %row of current assembly in matrix
-            c = mod(i,ncols); %column of current assembly in matrix
-            if c == 0 %adjust for special case of last column in each row
-                r = r-1; c = ncols;
-            end
-
-            if isnan(map(i))
-                T_out_hexmap(r,c,k) = 0;
-            else
-                T_out_hexmap(r,c,k) = T_out(map(i),k);
-            end
-
-            i = i + 1;
-        end
-        k = k + 1;
-    end
+    T_out_hexmap = generateToutHexmap(powerDetectorFiles, map, ncols, T_out);
     
     %create hexmap of flowrates
     i = 1;
