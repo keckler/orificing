@@ -105,8 +105,14 @@ cvx_begin
                 m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(nw,:)./alpha(nw,:)
                 m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(nw,:)./alpha(nw,:)
                 
-                fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, nw, length(m(1,:)), center, center, nw, nw);
-                fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, nw, length(m(1,:)), center, center, nw, nw);
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, nw, length(m(1,:)), center, center, nw, nw);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, nw, length(m(1,:)), center, center, nw, nw);
+                
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, nw, length(m(1,:)), center, center, nw, nw);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, nw, length(m(1,:)), nw, nw, center, center);
+                
+                fprintf(fm, 'subject to channel%iAdjacent%i_1 {k in 1..%i}: (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) - (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, nw, length(m(1,:)), center, center, nw, nw);
+                fprintf(fm, 'subject to channel%iAdjacent%i_2 {k in 1..%i}: -(sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) + (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, nw, length(m(1,:)), center, center, nw, nw);
             end
 
             if isnan(ne) %if northeast assembly is not in reduced matrix, don't do anything
@@ -114,8 +120,14 @@ cvx_begin
                 m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(ne,:)./alpha(ne,:)
                 m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(ne,:)./alpha(ne,:)
                 
-                fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, ne, length(m(1,:)), center, center, ne, ne);
-                fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, ne, length(m(1,:)), center, center, ne, ne);
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, ne, length(m(1,:)), center, center, ne, ne);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, ne, length(m(1,:)), center, center, ne, ne);
+                
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, ne, length(m(1,:)), center, center, ne, ne);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, ne, length(m(1,:)), ne, ne, center, center);
+                
+                fprintf(fm, 'subject to channel%iAdjacent%i_1 {k in 1..%i}: (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) - (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, ne, length(m(1,:)), center, center, ne, ne);
+                fprintf(fm, 'subject to channel%iAdjacent%i_2 {k in 1..%i}: -(sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) + (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, ne, length(m(1,:)), center, center, ne, ne);
             end
 
             if isnan(w) %if west assembly is not in reduced matrix, don't do anything
@@ -123,8 +135,14 @@ cvx_begin
                 m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(w,:)./alpha(w,:)
                 m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(w,:)./alpha(w,:)
                 
-                fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, w, length(m(1,:)), center, center, w, w);
-                fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, w, length(m(1,:)), center, center, w, w);
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, w, length(m(1,:)), center, center, w, w);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, w, length(m(1,:)), center, center, w, w);
+                
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, w, length(m(1,:)), center, center, w, w);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, w, length(m(1,:)), w, w, center, center);
+                
+                fprintf(fm, 'subject to channel%iAdjacent%i_1 {k in 1..%i}: (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) - (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, w, length(m(1,:)), center, center, w, w);
+                fprintf(fm, 'subject to channel%iAdjacent%i_2 {k in 1..%i}: -(sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) + (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, w, length(m(1,:)), center, center, w, w);
             end
 
             if isnan(e) %if east assembly is not in reduced matrix, don't do anything
@@ -132,8 +150,14 @@ cvx_begin
                 m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(e,:)./alpha(e,:)
                 m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(e,:)./alpha(e,:)
                 
-                fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, e, length(m(1,:)), center, center, e, e);
-                fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, e, length(m(1,:)), center, center, e, e);
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, e, length(m(1,:)), center, center, e, e);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, e, length(m(1,:)), center, center, e, e);
+                
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, e, length(m(1,:)), center, center, e, e);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, e, length(m(1,:)), e, e, center, center);
+                
+                fprintf(fm, 'subject to channel%iAdjacent%i_1 {k in 1..%i}: (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) - (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, e, length(m(1,:)), center, center, e, e);
+                fprintf(fm, 'subject to channel%iAdjacent%i_2 {k in 1..%i}: -(sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) + (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, e, length(m(1,:)), center, center, e, e);
             end
 
             if isnan(sw) %if southwest assembly is not in reduced matrix, don't do anything
@@ -141,8 +165,14 @@ cvx_begin
                 m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(sw,:)./alpha(sw,:)
                 m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(sw,:)./alpha(sw,:)
                 
-                fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, sw, length(m(1,:)), center, center, sw, sw);
-                fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, sw, length(m(1,:)), center, center, sw, sw);
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, sw, length(m(1,:)), center, center, sw, sw);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, sw, length(m(1,:)), center, center, sw, sw);
+                
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, sw, length(m(1,:)), center, center, sw, sw);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, sw, length(m(1,:)), sw, sw, center, center);
+                
+                fprintf(fm, 'subject to channel%iAdjacent%i_1 {k in 1..%i}: (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) - (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, sw, length(m(1,:)), center, center, sw, sw);
+                fprintf(fm, 'subject to channel%iAdjacent%i_2 {k in 1..%i}: -(sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) + (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, sw, length(m(1,:)), center, center, sw, sw);
             end
 
             if isnan(se) %if southeast assembly is not in reduced matrix, don't do anything
@@ -150,8 +180,14 @@ cvx_begin
                 m(center,:)./alpha(center,:) >= 1/(1+adjacent_max_diff)*m(se,:)./alpha(se,:)
                 m(center,:)./alpha(center,:) <= 1/(1-adjacent_max_diff)*m(se,:)./alpha(se,:)
                 
-                fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, se, length(m(1,:)), center, center, se, se);
-                fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, se, length(m(1,:)), center, center, se, se);
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: m[%i,i]/alpha[%i,i] >= (1/(1+adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, se, length(m(1,:)), center, center, se, se);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: m[%i,i]/alpha[%i,i] <= (1/(1-adjacent_max_diff))*(m[%i,i]/alpha[%i,i]);\n', center, se, length(m(1,:)), center, center, se, se);
+                
+                %fprintf(fm, 'subject to channel%iAdjacent%iGreater {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, se, length(m(1,:)), center, center, se, se);
+                %fprintf(fm, 'subject to channel%iAdjacent%iLess {i in 1..%i}: log(alpha[%i,i]) - mu[%i] - log(alpha[%i,i]) + mu[%i] <= log(adjacent_max_diff);\n', center, se, length(m(1,:)), se, se, center, center);
+                
+                fprintf(fm, 'subject to channel%iAdjacent%i_1 {k in 1..%i}: (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) - (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, se, length(m(1,:)), center, center, se, se);
+                fprintf(fm, 'subject to channel%iAdjacent%i_2 {k in 1..%i}: -(sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) + (sum{j in 1..n} delta[%i,j]*Omega[%i,j,k]) <= adjacent_max_diff;\n', center, se, length(m(1,:)), center, center, se, se);
             end
         end
 
