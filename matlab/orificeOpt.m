@@ -16,8 +16,8 @@ T_out_bar_tol = 5; %tolerance on perfectly mixed coolant outlet temperature, C
 v_max = 12.0; %maximum coolant velocity allowed in assembly, m/s, limit taken from Qvist et al
 xi = 40.0; %maximum outlet temperature difference between adjacent assemblies, C
 
-x = [0.05:0.01:0.49, 0.5:0.1:4.9, 5.0:1:100]; %vector of possible flowrates
-%x = [0.05:0.1:0.55, 0.6:1:1.6, 2:2:100];
+%x = [0.05:0.01:0.49, 0.5:0.1:4.9, 5.0:1:100]; %vector of possible flowrates
+x = [0.05:0.1:0.55, 0.6:1:1.6, 2:2:100];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % begin code
@@ -78,7 +78,7 @@ ctype = '';
 for i = 1:nvars
     if i <= nass %mdot variables
         ctype(end+1) = 'C';
-    elseif i <= nass*npossflows %delta variables
+    elseif i <= nass+nass*npossflows %delta variables
         ctype(end+1) = 'B';
     else %beta variables
         ctype(end+1) = 'C';
@@ -234,8 +234,8 @@ fprintf('         continuous = %i\n', sum(ctype == 'C'));
 
 fprintf('passing to cplex for solve\n');
 
-opts=cplexoptimset('display','on');
-%opts=cplexoptimset('display','iter');
+%opts=cplexoptimset('display','on');
+opts=cplexoptimset('display','iter');
 opts.exportmodel = 'cplex_output.lp';
 [solutionvector, objval, status, output] = cplexmilp(c, Aineq, bineq, Aeq, beq, [], [], [], [], [], ctype,[],opts);
 fprintf('exit status = %i\n', status);
