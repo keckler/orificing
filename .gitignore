@@ -5,3 +5,5 @@
 *.gz
 noShuffle.pptx
 noShuffle.png
+*.lp
+*.mat
