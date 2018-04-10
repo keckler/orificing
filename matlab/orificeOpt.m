@@ -234,9 +234,10 @@ fprintf('         continuous = %i\n', sum(ctype == 'C'));
 
 fprintf('passing to cplex for solve\n');
 
-cplexoptimset('Display', 'iter'); %what the fuck why doesn't this work
-cplexoptimset('mip.display', 2, 'mip.interval', 10); %what the fuck why doesn't this work
-[solutionvector, objval, status, output] = cplexmilp(c, Aineq, bineq, Aeq, beq, [], [], [], [], [], ctype);
+opts=cplexoptimset('display','on');
+%opts=cplexoptimset('display','iter');
+opts.exportmodel = 'cplex_output.lp';
+[solutionvector, objval, status, output] = cplexmilp(c, Aineq, bineq, Aeq, beq, [], [], [], [], [], ctype,[],opts);
 fprintf('exit status = %i\n', status);
 fprintf('solution time = %f\n', output.time);
 
