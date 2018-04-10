@@ -1,27 +1,4 @@
-clear variables;
-
-A_flow = 123.3184E-4; %flow area per assembly, m^2
-assemblyPowerThreshold = 0.01E6; %minimum power in an assembly to be considered in the optimization, W
-cp = 1272; %average heat capacity of coolant, J/kg/K
-dP_max = 1E6; %maximum allowable pressure drop over core, Pa, limit taken from Qvist et al
-dT_max = 210; %maximum temp increase allowable, C
-f_novendstern = 0.021132; %friction factor in the Novendstern friction loss model, see p282 of Waltar
-H = 3.18; %height of rods, m
-P_w = 7.2062; %wetted perimeter per assembly, m
-powerDetectorFiles = {'~/Documents/work/ARC/serpent/BnB/BnB_det0','~/Documents/work/ARC/serpent/BnB/BnB_det1','~/Documents/work/ARC/serpent/BnB/BnB_det2','~/Documents/work/ARC/serpent/BnB/BnB_det3'}; %paths of Serpent detector files with lattice power detectors
-rho = 850; %coolant density at lowest point, kg/m^3
-T_in = 355; %coolant inlet temperature, C
-T_out_bar = 510; %perfectly mixed coolant outlet plenum temperature, C
-T_out_bar_tol = 5; %tolerance on perfectly mixed coolant outlet temperature, C
-v_max = 12.0; %maximum coolant velocity allowed in assembly, m/s, limit taken from Qvist et al
-xi = 40.0; %maximum outlet temperature difference between adjacent assemblies, C
-
-%x = [0.05:0.01:0.49, 0.5:0.1:4.9, 5.0:1:100]; %vector of possible flowrates
-x = [0.05:0.1:0.55, 0.6:1:1.6, 2:2:100];
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% begin code
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+run('orificeInput.m');
 
 fprintf('beginning\n');
 
